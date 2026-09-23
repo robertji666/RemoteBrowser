@@ -1,4 +1,4 @@
-FROM golang:1.25-bookworm AS webrtc-service-builder
+FROM golang:1.27-bookworm AS webrtc-service-builder
 
 WORKDIR /src
 COPY webrtc-service/go.mod webrtc-service/go.sum* ./
@@ -6,7 +6,7 @@ RUN go mod download
 COPY webrtc-service/ ./
 RUN CGO_ENABLED=0 go build -o /out/webrtc-service .
 
-FROM golang:1.25-bookworm AS input-service-builder
+FROM golang:1.27-bookworm AS input-service-builder
 
 WORKDIR /src
 COPY input-service/go.mod input-service/go.sum* ./
@@ -14,7 +14,7 @@ RUN go mod download
 COPY input-service/ ./
 RUN CGO_ENABLED=0 go build -o /out/input-service .
 
-FROM golang:1.25-bookworm AS file-service-builder
+FROM golang:1.27-bookworm AS file-service-builder
 
 WORKDIR /src
 COPY file-service/ ./
