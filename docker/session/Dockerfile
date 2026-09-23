@@ -20,7 +20,7 @@ WORKDIR /src
 COPY file-service/ ./
 RUN GO111MODULE=off CGO_ENABLED=0 go build -o /out/file-service .
 
-FROM debian:12-slim
+FROM debian:13-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 
