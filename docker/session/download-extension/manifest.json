@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "RemoteBrowser Download Bridge",
+  "version": "1.0.2",
+  "description": "Sends explicit download links to the remote Chromium download manager.",
+  "permissions": ["downloads"],
+  "host_permissions": ["http://127.0.0.1:6084/*", "http://localhost:6084/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_start",
+      "all_frames": true
+    }
+  ]
+}

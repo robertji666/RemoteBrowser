@@ -1,0 +1,28 @@
+{{define "content"}}
+<div class="login-page">
+    <div class="login-card">
+        <div class="login-brand">
+            <h1>RemoteBrowser</h1>
+            <p>属于你的浏览器，随时回来继续。</p>
+        </div>
+        <form class="login-form" method="post" action="/api/login">
+            <input type="hidden" name="csrf_token" value="{{.CSRF}}">
+            <div class="form-group">
+                <label for="username">邮箱 / 管理员账号</label>
+                <input type="text" id="username" name="username" placeholder="you@example.com 或 admin" autocomplete="username" required autofocus>
+            </div>
+            <div class="form-group">
+                <label for="password">密码</label>
+                <input type="password" id="password" name="password" placeholder="输入密码" autocomplete="current-password" required>
+            </div>
+            {{if .Error}}
+            <div class="form-error">{{.Error}}</div>
+            {{end}}
+            <button type="submit" class="btn btn-primary btn-block">登录</button>
+        </form>
+        <div class="login-footer">
+            <span>账号由管理员创建 · 忘记密码请联系管理员</span>
+        </div>
+    </div>
+</div>
+{{end}}

@@ -1,0 +1,15 @@
+.DS_Store
+data/
+data-*/
+reference/
+/manager
+*.db
+__pycache__/
+*.py[cod]
+.env
+.env.*
+!.env.example
+docs/pre-publication-checklist.md
+IMPLEMENTATION-STATUS.md
+BROWSER-TEST-REPORT.md
+PRD.md

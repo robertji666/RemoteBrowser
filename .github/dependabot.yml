@@ -1,0 +1,26 @@
+version: 2
+updates:
+  - package-ecosystem: gomod
+    directory: /
+    schedule:
+      interval: weekly
+  - package-ecosystem: gomod
+    directory: /docker/session/input-service
+    schedule:
+      interval: weekly
+  - package-ecosystem: gomod
+    directory: /docker/session/webrtc-service
+    schedule:
+      interval: weekly
+  - package-ecosystem: docker
+    directory: /docker/manager
+    schedule:
+      interval: weekly
+  - package-ecosystem: docker
+    directory: /docker/session
+    schedule:
+      interval: weekly
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

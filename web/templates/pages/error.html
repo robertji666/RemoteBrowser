@@ -1,0 +1,10 @@
+{{define "content"}}
+<div class="error-page">
+    <div class="error-card">
+        <div class="error-icon">{{.Icon}}</div>
+        <h1>{{.Title}}</h1>
+        <p>{{.Message}}</p>
+        <a href="{{.RedirectURL}}" class="btn btn-primary">{{.ButtonText}}</a>
+    </div>
+</div>
+{{end}}

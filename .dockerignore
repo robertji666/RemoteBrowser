@@ -1,0 +1,11 @@
+.git
+data
+data-*
+.env
+.env.*
+!.env.example
+/manager
+*.md
+scripts
+reference
+docker/session

@@ -1,0 +1,28 @@
+{{if .Files}}
+<table class="file-table">
+    <thead>
+        <tr>
+            <th>文件名</th>
+            <th>大小</th>
+            <th>时间</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{range .Files}}
+        <tr>
+            <td>{{.name}}</td>
+            <td>{{.sizeDisplay}}</td>
+            <td>{{.modified}}</td>
+            <td>
+                <a href="/api/sessions/{{$.SessionID}}/files/{{.urlName}}" class="btn btn-ghost btn-sm" download>下载</a>
+            </td>
+        </tr>
+        {{end}}
+    </tbody>
+</table>
+{{else}}
+<div class="empty-state small">
+    <p>暂无文件</p>
+</div>
+{{end}}

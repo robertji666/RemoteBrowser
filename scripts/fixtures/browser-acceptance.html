@@ -1,0 +1,20 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>RemoteBrowser 持久化验收</title>
+<style>body{font:22px sans-serif;max-width:850px;margin:36px auto;padding:20px;background:#eff6ff;color:#142438}button,input{font:inherit;padding:14px;margin:8px 0}input{width:90%}output{display:block;padding:15px;background:white;white-space:pre-wrap}button{cursor:pointer}</style>
+<h1>RemoteBrowser 持久化验收</h1>
+<p>仅使用虚构验收数据。此页面不向外部发送数据。</p>
+<label>中文与标点输入<input id="text" placeholder="输入：你好，持久浏览器。"></label>
+<button id="save">保存站点数据与 Cookie</button>
+<button id="download">下载验收文件</button>
+<button id="audio">播放 440Hz 测试音（10秒）</button>
+<output id="state"></output>
+<script>
+const field=document.querySelector('#text'), state=document.querySelector('#state');
+function show(){state.textContent='localStorage: '+(localStorage.getItem('rb-acceptance')||'未保存')+'\nCookie: '+(document.cookie||'未设置');}
+field.value=localStorage.getItem('rb-acceptance')||'';
+document.querySelector('#save').onclick=()=>{localStorage.setItem('rb-acceptance',field.value);document.cookie='rb_acceptance=retained; Max-Age=604800; SameSite=Lax';show();};
+document.querySelector('#download').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['RemoteBrowser 浏览器下载验收\n'+field.value],{type:'text/plain;charset=utf-8'}));a.download='浏览器下载验收.txt';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);};
+document.querySelector('#audio').onclick=async()=>{const c=new AudioContext();await c.resume();const o=c.createOscillator(),g=c.createGain();o.frequency.value=440;g.gain.value=.08;o.connect(g).connect(c.destination);o.start();state.textContent+='\n440Hz 测试音已开始';setTimeout(()=>{o.stop();c.close();state.textContent+='\n测试音结束';},10000);};
+show();
+</script>

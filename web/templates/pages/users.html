@@ -1,0 +1,20 @@
+{{define "content"}}
+<main class="dashboard-main wide">
+    <div class="page-heading"><div><p class="eyebrow">ADMINISTRATION</p><h1>用户管理</h1><p class="muted">分配账号和浏览器空间，清楚掌握每一份资源。</p></div><span class="pill">{{.Total}} 位用户</span></div>
+    <details class="panel new-user"><summary>＋ 新增用户</summary>
+        <form method="post" action="/api/admin/users" class="form-grid"><input type="hidden" name="csrf_token" value="{{.CSRF}}">
+            <div class="form-group"><label for="email">邮箱</label><input id="email" name="email" type="email" autocomplete="off" required></div>
+            <div class="form-group"><label for="display-name">显示名称（可选）</label><input id="display-name" name="display_name" maxlength="80"></div>
+            <div class="form-group"><label for="quota">实例数量上限</label><input id="quota" name="quota" type="number" min="0" max="100000" value="{{.DefaultQuota}}" required></div>
+            <div class="form-group"><label for="initial-password">初始密码{{if .Mail.Enabled}}（仅手工交付时填写）{{end}}</label><input id="initial-password" name="password" type="password" minlength="12" autocomplete="new-password" {{if not .Mail.Enabled}}required{{end}}>{{if .Mail.Enabled}}<small class="muted">邮件交付自动生成随机临时密码，不使用此处填写的值。</small>{{end}}</div>
+            {{if .Mail.Enabled}}<label class="check-row span-all"><input type="checkbox" name="manual" value="true">手工交付密码（需填写初始密码，不发送邮件）</label>{{else}}<input type="hidden" name="manual" value="true"><p class="muted span-all">未配置邮件服务，请填写密码并自行交付。用户首次登录需要改密。</p>{{end}}
+            <div class="span-all"><button class="btn btn-primary">创建用户</button></div>
+        </form>
+    </details>
+    <form class="filter-bar" method="get"><label class="sr-only" for="user-search">搜索用户</label><input id="user-search" name="q" value="{{.Search}}" placeholder="搜索邮箱或名称"><label class="sr-only" for="user-status">账号状态</label><select id="user-status" name="status"><option value="">全部状态</option><option value="active" {{if eq .FilterStatus "active"}}selected{{end}}>正常</option><option value="disabled" {{if eq .FilterStatus "disabled"}}selected{{end}}>已禁用</option><option value="deleting" {{if eq .FilterStatus "deleting"}}selected{{end}}>删除中</option><option value="delete_failed" {{if eq .FilterStatus "delete_failed"}}selected{{end}}>删除失败</option></select><button class="btn btn-ghost">筛选</button></form>
+    <div class="table-wrap panel"><table><thead><tr><th>用户</th><th>角色 / 状态</th><th>浏览器实例</th><th>密码交付</th><th>创建时间</th><th>管理</th></tr></thead><tbody>
+    {{range .Users}}<tr><td><strong>{{.Username}}</strong>{{if .DisplayName}}<span class="table-sub">{{.DisplayName}}</span>{{end}}</td><td><span class="table-sub">{{if eq .Role "admin"}}管理员{{else}}普通用户{{end}}</span><span class="status-badge status-{{.Status}}" data-state="{{.Status}}">{{.Status}}</span></td><td><a class="count-link" href="/admin/users/{{.ID}}">{{.InstanceCount}} <span class="muted">/ {{.InstanceQuota}}</span></a></td><td><span data-delivery="{{.DeliveryStatus}}">{{.DeliveryStatus}}</span>{{if .DeliveryError}}<span class="table-sub inline-error">{{.DeliveryError}}</span>{{end}}{{if .LastError}}<span class="table-sub inline-error">{{.LastError}}</span>{{end}}</td><td><time datetime="{{.CreatedAt.Format "2006-01-02T15:04:05Z07:00"}}">{{.CreatedAt.Format "2006-01-02"}}</time></td><td><a class="btn btn-ghost btn-sm" href="/admin/users/{{.ID}}">管理用户 →</a></td></tr>{{else}}<tr><td colspan="6" class="muted">没有匹配的用户。</td></tr>{{end}}
+    </tbody></table></div>
+    <div class="pagination"><span class="muted">第 {{.Page}} 页 · 共 {{.Total}} 位</span>{{if gt .Previous 0}}<a href="?q={{.Search}}&status={{.FilterStatus}}&page={{.Previous}}">上一页</a>{{end}}{{if .HasNext}}<a href="?q={{.Search}}&status={{.FilterStatus}}&page={{.Next}}">下一页</a>{{end}}</div>
+</main>
+{{end}}

@@ -1,0 +1,25 @@
+{{define "content"}}
+<main class="dashboard-main">
+    <a class="back-link" href="/admin/users">← 用户列表</a>
+    <div class="page-heading"><div><p class="eyebrow">USER DETAILS</p><h1>{{.Target.Username}}</h1><p class="muted">{{.Target.DisplayName}} · <span data-state="{{.Target.Status}}">{{.Target.Status}}</span></p></div><span class="pill">{{.Target.InstanceCount}} / {{.Target.InstanceQuota}} 个实例</span></div>
+    {{if .Target.LastError}}<div class="notice notice-error">{{.Target.LastError}}</div>{{end}}
+    <div class="two-column">
+        <section class="panel form-panel"><h2>实例配额</h2><p class="muted">降低配额不会删除或停止已有实例。</p><form method="post" action="/api/admin/users/{{.Target.ID}}/quota"><input type="hidden" name="csrf_token" value="{{.CSRF}}"><div class="form-group"><label for="quota">数量上限</label><input id="quota" name="quota" type="number" min="0" max="100000" value="{{.Target.InstanceQuota}}" required></div><button class="btn btn-primary">保存配额</button></form></section>
+        <section class="panel form-panel"><h2>账号与密码交付</h2><p class="muted">交付状态：<span data-delivery="{{.Target.DeliveryStatus}}">{{.Target.DeliveryStatus}}</span></p>{{if .Target.DeliveryError}}<p class="inline-error">{{.Target.DeliveryError}}</p>{{end}}
+        {{if ne .Target.Role "admin"}}{{if or (eq .Target.Status "active") (eq .Target.Status "disabled")}}<form method="post" action="/api/admin/users/{{.Target.ID}}/status"><input type="hidden" name="csrf_token" value="{{.CSRF}}">{{if eq .Target.Status "active"}}<input type="hidden" name="status" value="disabled"><button class="btn btn-ghost">禁用账号</button>{{else}}<input type="hidden" name="status" value="active"><button class="btn btn-primary">启用账号</button>{{end}}</form>{{end}}
+        {{if and .Mail.Enabled .Target.MustChangePassword}}<form class="space-top" method="post" action="/api/admin/users/{{.Target.ID}}/resend" data-confirm="为 {{.Target.Username}} 重新发送会生成新的临时密码并撤销旧凭据，继续？"><input type="hidden" name="csrf_token" value="{{.CSRF}}"><button class="btn btn-ghost">重新发送开户邮件</button></form>{{end}}{{end}}
+        </section>
+    </div>
+    {{if ne .Target.Role "admin"}}
+    <section class="panel form-panel"><h2>修改用户密码</h2><p class="muted">无需原密码。保存后旧密码和现有登录失效，浏览器实例继续保留。</p>
+        <form method="post" action="/api/admin/users/{{.Target.ID}}/password" class="form-grid" data-confirm="确定修改 {{.Target.Username}} 的密码并撤销其旧登录？浏览器实例将继续保留。">
+            <input type="hidden" name="csrf_token" value="{{.CSRF}}"><div class="form-group"><label for="reset-password">新临时密码{{if .Mail.Enabled}}（留空自动生成）{{end}}</label><input id="reset-password" name="password" type="password" minlength="12" autocomplete="new-password" {{if not .Mail.Enabled}}required{{end}}></div><div class="form-group"><label for="reset-confirm">确认新密码</label><input id="reset-confirm" name="confirm_password" type="password" minlength="12" autocomplete="new-password" {{if not .Mail.Enabled}}required{{end}}></div>
+            {{if .Mail.Enabled}}<label class="check-row span-all"><input type="checkbox" name="manual" value="true">手工交付（需填写密码，不发送邮件）</label>{{else}}<input type="hidden" name="manual" value="true"><p class="muted span-all">未配置邮件服务，请将新密码交付给用户。</p>{{end}}<div class="span-all"><button class="btn btn-primary">重置密码</button></div>
+        </form>
+    </section>{{end}}
+    <section class="panel table-wrap"><h2 class="panel-title">用户的浏览器实例</h2><table><thead><tr><th>实例</th><th>状态</th><th>创建时间</th></tr></thead><tbody>{{range .Sessions}}<tr><td><strong>{{.Name}}</strong><span class="table-sub mono">{{.ID}}</span></td><td><span data-state="{{.Status}}">{{.Status}}</span>{{if .LastError}}<p class="inline-error">{{.LastError}}</p>{{end}}</td><td><time datetime="{{.CreatedAt.Format "2006-01-02T15:04:05Z07:00"}}">{{.CreatedAt.Format "2006-01-02"}}</time></td></tr>{{else}}<tr><td colspan="3" class="muted">该用户尚无实例。</td></tr>{{end}}</tbody></table></section>
+    {{if ne .Target.Role "admin"}}<section class="panel danger-panel"><h2>删除用户与全部数据</h2><p>将永久删除 <strong>{{.Target.Username}}</strong> 及其 <strong>{{.Target.InstanceCount}}</strong> 个浏览器实例、全部浏览器数据和下载文件。此操作无法撤回。</p><form method="post" action="/api/admin/users/{{.Target.ID}}/delete" data-confirm="最后确认：永久删除 {{.Target.Username}}、其 {{.Target.InstanceCount}} 个实例、全部浏览器数据和下载文件？此操作无法撤回。">
+        <input type="hidden" name="csrf_token" value="{{.CSRF}}"><div class="form-group"><label for="delete-email">输入用户邮箱以确认</label><input id="delete-email" name="confirm_email" type="email" autocomplete="off" required></div><label class="check-row"><input type="checkbox" name="confirm_delete" value="yes" required>我确认同时删除全部实例与数据</label><button class="btn btn-danger space-top">{{if or (eq .Target.Status "deleting") (eq .Target.Status "delete_failed")}}重试清理{{else}}删除用户及数据{{end}}</button>
+    </form></section>{{end}}
+</main>
+{{end}}

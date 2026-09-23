@@ -1,0 +1,10 @@
+{{define "content"}}
+<main class="dashboard-main">
+    <div class="page-heading"><div><p class="eyebrow">YOUR WORKSPACE</p><h1>我的浏览器实例</h1><p class="muted">独立环境，长期保留。断开连接后继续运行。</p></div><span class="pill">持久实例</span></div>
+    <section class="panel create-panel" aria-label="创建实例"><form class="inline-form" method="post" action="/api/sessions">
+        <input type="hidden" name="csrf_token" value="{{.CSRF}}"><input type="hidden" name="request_key" value="{{.RequestKey}}">
+        <div class="form-group"><label for="instance-name">实例名称</label><input id="instance-name" name="name" placeholder="例如：日常工作" maxlength="80" required></div><button class="btn btn-primary" type="submit">＋ 创建浏览器实例</button>
+    </form></section>
+    <div id="session-list" hx-get="/api/sessions" hx-trigger="load, every 5s" hx-swap="innerHTML"><div class="loading-state">正在读取你的实例…</div></div>
+</main>
+{{end}}

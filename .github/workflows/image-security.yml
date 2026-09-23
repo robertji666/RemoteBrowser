@@ -1,0 +1,60 @@
+name: Container image security
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .dockerignore
+      - go.mod
+      - go.sum
+      - cmd/**
+      - internal/**
+      - migrations/**
+      - web/**
+      - docker/**
+      - .github/workflows/image-security.yml
+  pull_request:
+    paths:
+      - .dockerignore
+      - go.mod
+      - go.sum
+      - cmd/**
+      - internal/**
+      - migrations/**
+      - web/**
+      - docker/**
+      - .github/workflows/image-security.yml
+  schedule:
+    - cron: "23 9 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    name: Scan ${{ matrix.image }} image
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: manager
+            build: docker build --pull -t remotebrowser/manager:ci -f docker/manager/Dockerfile .
+            ref: remotebrowser/manager:ci
+          - image: session
+            build: docker build --pull -t remotebrowser/session:ci docker/session
+            ref: remotebrowser/session:ci
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Build image
+        run: ${{ matrix.build }}
+      - name: Scan fixable high and critical vulnerabilities
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ matrix.ref }}
+          format: table
+          exit-code: "1"
+          ignore-unfixed: true
+          vuln-type: os,library
+          severity: CRITICAL,HIGH

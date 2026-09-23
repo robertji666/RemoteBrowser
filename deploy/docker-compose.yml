@@ -1,0 +1,65 @@
+services:
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - RB_SITE_ADDRESS=${RB_SITE_ADDRESS:-:80}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+    depends_on:
+      - manager
+    networks:
+      - remotebrowser
+
+  manager:
+    stop_grace_period: 30s
+    build:
+      context: ..
+      dockerfile: docker/manager/Dockerfile
+    restart: unless-stopped
+    environment:
+      # Required only when initializing the first administrator. Existing hashes
+      # are never replaced by an environment variable on restart.
+      - RB_ADMIN_PASSWORD=${RB_ADMIN_PASSWORD:-}
+      - RB_ADMIN_EMAIL=${RB_ADMIN_EMAIL:-}
+      - RB_PUBLIC_URL=${RB_PUBLIC_URL:-http://localhost}
+      - RB_DEFAULT_INSTANCE_QUOTA=${RB_DEFAULT_INSTANCE_QUOTA:-${RB_MAX_SESSIONS:-5}}
+      - RB_DATA_DIR=/data
+      - RB_SESSION_HOST_DATA_DIR=${RB_SESSION_HOST_DATA_DIR:?Set an absolute host data directory; preserve the existing path on upgrade}
+      - RB_MAX_UPLOAD_SIZE=${RB_MAX_UPLOAD_SIZE:-104857600}
+      - RB_COOKIE_SECRET=${RB_COOKIE_SECRET:-}
+      # All SMTP fields stay empty when disabled; setting even just the port or
+      # encryption declares SMTP configured and surfaces incomplete settings.
+      - RB_SMTP_HOST=${RB_SMTP_HOST:-}
+      - RB_SMTP_PORT=${RB_SMTP_PORT:-}
+      - RB_SMTP_USERNAME=${RB_SMTP_USERNAME:-}
+      - RB_SMTP_PASSWORD=${RB_SMTP_PASSWORD:-}
+      - RB_SMTP_FROM=${RB_SMTP_FROM:-}
+      - RB_SMTP_ENCRYPTION=${RB_SMTP_ENCRYPTION:-}
+      - RB_SMTP_TIMEOUT=${RB_SMTP_TIMEOUT:-10s}
+      - RB_SESSION_CPUS=${RB_SESSION_CPUS:-2}
+      - RB_SESSION_MEMORY_MB=${RB_SESSION_MEMORY_MB:-3072}
+      - RB_SESSION_SHM_MB=${RB_SESSION_SHM_MB:-1024}
+      - RB_WEBRTC_ICE_IP=${RB_WEBRTC_ICE_IP:-127.0.0.1}
+      - RB_PUBLISH_SESSION_TCP_PORTS=false
+      - RB_DOCKER_NETWORK=${RB_DOCKER_NETWORK:-deploy_remotebrowser}
+      - RB_HTTP_ADDR=:8080
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${RB_SESSION_HOST_DATA_DIR:?Set an absolute host data directory; preserve the existing path on upgrade}:/data
+    expose:
+      - "8080"
+    networks:
+      - remotebrowser
+
+networks:
+  remotebrowser:
+    driver: bridge
+    name: ${RB_DOCKER_NETWORK:-deploy_remotebrowser}
+
+volumes:
+  caddy_data:

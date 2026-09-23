@@ -1,0 +1,8 @@
+{$RB_SITE_ADDRESS} {
+	reverse_proxy manager:8080 {
+		header_up Host {host}
+		header_up X-Real-IP {remote}
+	}
+}
+
+# WebSocket support is automatic in Caddy reverse_proxy

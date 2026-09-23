@@ -1,0 +1,61 @@
+<div class="section-heading"><h2>全部实例</h2><span class="muted">已创建 {{len .Sessions}} / 上限 {{.User.InstanceQuota}}</span></div>
+<div class="session-grid">
+{{if .Sessions}}
+{{range .Sessions}}
+<div class="session-card" data-status="{{.Status}}">
+    <div class="session-card-header">
+        <h3 class="session-name">{{if .Name}}{{.Name}}{{else}}{{.ID}}{{end}}</h3>
+        <span class="status-badge status-{{.Status}}" data-state="{{.Status}}">{{.Status}}</span>
+    </div>
+    <p class="mono muted small">{{.ID}}</p>
+    <div class="session-card-meta">
+        <div>创建: <time datetime="{{.CreatedAt.Format "2006-01-02T15:04:05Z07:00"}}">{{.CreatedAt.Format "2006-01-02 15:04"}}</time></div>
+        {{if .LastActiveAt}}
+        <div>最近访问: <time datetime="{{.LastActiveAt.Format "2006-01-02T15:04:05Z07:00"}}">{{.LastActiveAt.Format "2006-01-02 15:04"}}</time></div>
+        {{else}}
+        <div>活跃: -</div>
+        {{end}}
+        {{if eq .Status "running"}}<div>{{if .ConnectedCount}}有连接 · {{.ConnectedCount}} 条通道{{else}}无连接 · 后台运行中{{end}}</div>{{end}}
+        {{if .LastError}}<p class="inline-error">{{.LastError}}</p>{{end}}
+    </div>
+    <div class="session-card-actions">
+        {{if or (eq .Status "running") (eq .Status "disconnected")}}
+        <a href="/sessions/{{.ID}}/view" class="btn btn-primary btn-sm">进入</a>
+        {{else if or (eq .Status "stopped") (eq .Status "error")}}
+        <button class="btn btn-primary btn-sm"
+            hx-post="/api/sessions/{{.ID}}/start"
+            hx-target="#session-list"
+            hx-swap="innerHTML">
+            启动
+        </button>
+        {{else}}
+        <button class="btn btn-primary btn-sm" disabled>进入</button>
+        {{end}}
+
+        {{if or (eq .Status "running") (eq .Status "disconnected")}}
+        <button class="btn btn-warning btn-sm"
+            hx-post="/api/sessions/{{.ID}}/stop"
+            hx-target="#session-list"
+            hx-swap="innerHTML">
+            停止
+        </button>
+        {{end}}
+
+        <button class="btn btn-danger btn-sm"
+            hx-delete="/api/sessions/{{.ID}}"
+            hx-target="#session-list"
+            hx-swap="innerHTML"
+            hx-confirm="永久删除实例「{{if .Name}}{{.Name}}{{else}}{{.ID}}{{end}}」及其全部浏览器数据、下载文件？此操作无法撤回。">
+            删除
+        </button>
+    </div>
+</div>
+{{end}}
+{{else}}
+<div class="empty-state">
+    <div class="empty-icon">🖥️</div>
+    <h3>为你的任务准备一个浏览器</h3>
+    <p class="empty-hint">创建后拥有独立的登录状态、书签和下载空间。</p>
+</div>
+{{end}}
+</div>

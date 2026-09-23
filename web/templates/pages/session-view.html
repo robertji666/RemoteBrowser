@@ -1,0 +1,133 @@
+{{define "content"}}
+<div class="session-view" x-data="sessionPageData('{{.Session.ID}}')"
+    :class="{ 'is-fullscreen': isFullscreen, 'toolbar-revealed': toolbarRevealed }"
+    @pointermove="handlePagePointerMove($event)">
+    <div class="session-toolbar"
+        @mouseenter="toolbarHover = true; revealToolbar()"
+        @mouseleave="toolbarHover = false; revealToolbar()">
+        <div class="toolbar-left">
+            <a href="/" class="btn btn-ghost btn-sm">← 返回</a>
+            <span class="session-title">{{.Session.ID}}</span>
+            <span class="status-indicator status-{{.Session.Status}}"></span>
+        </div>
+        <div class="toolbar-center">
+            <button class="btn btn-ghost btn-sm"
+                @click="toggleWebRTC()"
+                :class="webrtcStatus">
+                <span x-text="webrtcLabel()">WebRTC 连接中</span>
+            </button>
+            <button class="btn btn-ghost btn-sm clipboard-btn"
+                @click="requestClipboard()"
+                :class="clipboardStatus"
+                title="首次点击授权后，本机剪贴板会自动同步到远程；浏览器拒绝后台读取时可再次点击">
+                <span x-text="clipboardLabel()"></span>
+            </button>
+            <button class="btn btn-ghost btn-sm"
+                @click="pullClipboard()"
+                :class="remoteClipboardStatus"
+                title="把远程浏览器剪贴板内容拉取到本机">
+                <span x-text="remoteClipboardLabel()">远程 → 本机</span>
+            </button>
+            <button class="btn btn-ghost btn-sm"
+                @click="toggleAudio()"
+                :class="audioStatus">
+                <span x-text="audioLabel()">♪ 启用声音</span>
+            </button>
+        </div>
+        <div class="toolbar-right">
+            <button class="btn btn-ghost btn-sm"
+                @click="toggleFullscreen()"
+                :title="isFullscreen ? '退出全屏' : '全屏显示远程浏览器'">
+                <span x-text="isFullscreen ? '⛶ 退出全屏' : '⛶ 全屏'"></span>
+            </button>
+            <button class="btn btn-ghost btn-sm"
+                @click="filePanelOpen = !filePanelOpen">
+                📁 文件
+            </button>
+            <a href="/" class="btn btn-ghost btn-sm">断开</a>
+        </div>
+    </div>
+
+    <div class="session-body">
+        <div id="noVNC_container" class="novnc-container"
+            :class="{ 'webrtc-active': webrtcStatus === 'connected' || webrtcStatus === 'connecting' }">
+            <div class="remote-screen" tabindex="0"
+                title="输入中文时请切换本机输入法，组合完成后会发送到远程浏览器"
+                @pointerdown="handlePointerDown($event)"
+                @pointermove="handlePointerMove($event)"
+                @pointerup="handlePointerUp($event)"
+                @pointercancel="handlePointerUp($event)"
+                @wheel="handleWheel($event)"
+                @contextmenu.prevent
+                @keydown="handleKeyDown($event)"
+                @keyup="handleKeyUp($event)"
+                @compositionstart="handleCompositionStart($event)"
+                @compositionupdate="handleCompositionUpdate($event)"
+                @compositionend="handleCompositionEnd($event)">
+                <video id="webrtc_video"
+                    class="webrtc-video"
+                    autoplay
+                    playsinline
+                    x-show="webrtcStatus === 'connected' || webrtcStatus === 'connecting'"></video>
+                <div class="webrtc-state" x-show="webrtcStatus === 'connecting'">
+                    WebRTC 连接中...
+                </div>
+                <div class="webrtc-state webrtc-error" x-show="webrtcStatus === 'error'">
+                    WebRTC 连接失败，已切回 noVNC
+                </div>
+                <div class="webrtc-state webrtc-error" x-show="sessionGone">
+                    浏览器实例不可用，请返回管理面板查看状态
+                    <a href="/" class="btn btn-ghost btn-sm">返回</a>
+                </div>
+                <textarea class="ime-input"
+                    aria-label="远程浏览器输入"
+                    autocomplete="off"
+                    autocorrect="off"
+                    autocapitalize="off"
+                    spellcheck="false"
+                    tabindex="-1"
+                    @input="handleInput($event)"></textarea>
+                <iframe id="noVNC_iframe" :src="noVNCSrc()"
+                    frameborder="0"
+                    allow="clipboard-read; clipboard-write"
+                    :class="{ 'input-overlay': webrtcStatus === 'connected' || webrtcStatus === 'connecting' }"></iframe>
+            </div>
+        </div>
+
+        <div class="file-panel" :class="{ 'open': filePanelOpen }"
+            x-show="filePanelOpen"
+            x-transition>
+            <div class="file-panel-header">
+                <h3>文件传输</h3>
+                <button @click="filePanelOpen = false" class="btn btn-ghost btn-sm">✕</button>
+            </div>
+            <div class="file-upload-area"
+                @click="openFilePicker()"
+                @keydown.enter.prevent="openFilePicker()"
+                @keydown.space.prevent="openFilePicker()"
+                @dragover.prevent="dragOver = true"
+                @dragleave.prevent="dragOver = false"
+                @drop.prevent="handleDrop($event)"
+                :class="{ 'drag-over': dragOver }"
+                id="drop-zone"
+                role="button"
+                tabindex="0">
+                <p>点击选择文件，或拖拽文件到此处上传</p>
+                <small>文件会保存到远程浏览器的 Downloads 目录。</small>
+                <input type="file" id="file-input" multiple
+                    @click.stop
+                    @change="handleFileSelect($event)">
+            </div>
+            <div class="file-upload-status error" x-show="uploadError" x-text="uploadError" role="alert"></div>
+            <div class="file-list" id="file-list"
+                hx-get="/api/sessions/{{.Session.ID}}/files"
+                hx-trigger="load, refresh, every 3s"
+                hx-swap="innerHTML">
+                <div class="loading-state">加载中...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/static/js/session.js?v=file-list-4"></script>
+{{end}}
