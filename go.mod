@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	github.com/docker/docker v28.5.2+incompatible
-	github.com/docker/go-connections v0.8.1
+	github.com/docker/go-connections v0.8.2
 	github.com/go-chi/chi/v5 v5.3.2
 	golang.org/x/crypto v0.57.0
 	modernc.org/sqlite v1.59.0
