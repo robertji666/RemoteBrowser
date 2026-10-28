@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	github.com/pion/ice/v4 v4.4.2
-	github.com/pion/rtp v1.10.5
+	github.com/pion/rtp v1.10.6
 	github.com/pion/webrtc/v4 v4.2.20
 )
 
